@@ -1,4 +1,7 @@
+
+
 import { Link, useRouter } from 'expo-router';
+import { GoogleAuthProvider } from 'firebase/auth';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -71,19 +74,31 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    Alert.alert(
-      'Iniciar con Google',
-      'Funcionalidad de Google Sign-In próximamente disponible'
-    );
+  const handleGoogleLogin = async () => {
+    const result = await promptAsync();
+    if (result.type === 'success') {
+      
+      Alert.alert('Éxito', 'Iniciaste sesión con Google');
+      
+      const credential = GoogleAuthProvider.credential(result.authentication?.accessToken);
+      //const auth = getAuth(firebaseApp);
+      //await signInWithCredential(auth, credential);
+      router.push('/');
+    } else if (result.type === 'error') {
+      Alert.alert('Error', 'No se pudo iniciar sesión con Google');
+    } else if (result.type === 'cancel') {
+      Alert.alert('Cancelado', 'Iniciar sesión con Google fue cancelado');
+    } else {
+      Alert.alert('Error desconocido', 'Ocurrió un error al iniciar sesión con Google');
+    }
   };
 
-  const handleForgotPassword = () => {
+  function handleForgotPassword() {
     Alert.alert(
       'Recuperar contraseña',
       'Se enviará un enlace de recuperación a tu correo electrónico'
     );
-  };
+  }
 
   const handleRegister = () => {
     router.push('/register');
@@ -368,3 +383,16 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
 });
+
+type GoogleLoginResult = {
+  type: 'success' | 'error' | 'cancel' | string;
+  authentication?: {
+    accessToken?: string;
+    [key: string]: any;
+  };
+};
+
+function promptAsync(): Promise<GoogleLoginResult> {
+  
+  return Promise.resolve({ type: 'success', authentication: { accessToken: 'fake-token' } });
+}
